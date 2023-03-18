@@ -30,13 +30,18 @@ const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
   Card.findByIdAndRemove(cardId)
-      .then(card => {res.status(200).send(card)})
-      .catch((err) => {
-        if(err.name === "CastError"){
-          return res.status(404).send({ message: `Карточка по указанному _id не найден` })
-        }
-        res.status(500).send({ message: `Произошла ошибка ${err.message}` })
-      });
+    .then(card => {
+      if(!card){
+        return res.status(404).send({ message: `Карточка по указанному _id не найден`})
+      }
+      res.status(200).send({ data: card })
+    })
+    .catch((err) => {
+      if(err.name === "CastError"){
+        return res.status(400).send({ message: `Переданы некорректные данные id карточки` })
+      }
+      res.status(500).send({ message: `Произошла ошибка ${err.message}` })
+    });
 };
 
 const likeCard = (req, res) => {
@@ -48,15 +53,15 @@ const likeCard = (req, res) => {
     { new: true },
   )
     .then(card => {
-      if(!cardId){
-        return res.status(404).send({ message: `Передан несуществующий _id карточки`})
-      }
-      if(!userId){
-        return res.status(400).send({ message: `Переданы некорректные данные для постановки лайка.`})
+      if(!card){
+        return res.status(404).send({ message: `Карточка по указанному _id не найден`})
       }
       res.status(200).send({ data: card })
     })
     .catch((err) => {
+      if(err.name === "CastError"){
+        return res.status(400).send({ message: `Переданы некорректные данные id карточки` })
+      }
       res.status(500).send({ message: `Произошла ошибка ${err.message}` })
     })
 }
@@ -70,15 +75,15 @@ const dislikeCard = (req, res) => {
     { new: true },
   )
     .then(card => {
-      if(!cardId){
-        return res.status(404).send({ message: `Передан несуществующий _id карточки`})
-      }
-      if(!userId){
-        return res.status(400).send({ message: `Переданы некорректные данные для постановки лайка.`})
+      if(!card){
+        return res.status(404).send({ message: `Карточка по указанному _id не найден`})
       }
       res.status(200).send({ data: card })
     })
     .catch((err) => {
+      if(err.name === "CastError"){
+        return res.status(400).send({ message: `Переданы некорректные данные id карточки` })
+      }
       res.status(500).send({ message: `Произошла ошибка ${err.message}` })
     })
 }

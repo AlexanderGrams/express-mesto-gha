@@ -7,7 +7,7 @@ router.use('/users', userRoutes);
 router.use('/cards', cardRoutes);
 
 router.use((req, res)=>{
-  res.status(404).send({error: 'Что-то пошло не так'})
+  res.status(404).send({ message: 'Страницы по запрошенному URL не существует' })
 })
 
 module.exports = router;
