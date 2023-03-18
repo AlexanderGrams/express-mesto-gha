@@ -3,7 +3,7 @@ const User = require('../models/userSchema')
 const getUsers = (req, res) => {
   User.find({})
     .then(users => res.status(200).send(users))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err}` }));
 };
 
 const getUser = (req, res) => {
@@ -16,16 +16,15 @@ const getUser = (req, res) => {
 
   User.findById(userId)
       .then(user => {res.status(200).send(user)})
-      .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+      .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err}` }));
 };
 
 const createUser = (req, res) => {
-  console.log(req.body)
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
     .then(user => res.status(200).send(user))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка при создании пользователся' }))
+    .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err} при создании пользователся` }))
 };
 
 module.exports = {
