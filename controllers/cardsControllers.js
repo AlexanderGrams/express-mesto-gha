@@ -7,10 +7,8 @@ const getCards = (req, res) => {
 };
 
 const createCard = (req, res) => {
-
   const owner = req.user._id;
   const { name, link } = req.body;
-  console.log(name, link, owner)
 
   Card.create({ name, link, owner })
     .then(card => res.status(200).send(card))
@@ -21,18 +19,39 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
-  if (!Card[cardId]) {
-    res.status(200).send(`Такой карточки не существует`);
-    return;
-  }
-
   Card.findByIdAndRemove(cardId)
       .then(card => {res.status(200).send(card)})
       .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err}` }));
 };
 
+const likeCard = (req, res) => {
+  const { cardId } = req.params
+  const userId = req.user._id
+
+  Card.findByIdAndUpdate(cardId,
+    { $addToSet: { likes: userId } },
+    { new: true },
+  )
+    .then(card => {res.status(200).send(card)})
+    .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err}` }));
+}
+
+const dislikeCard = (req, res) => {
+  const { cardId } = req.params
+  const userId = req.user._id
+
+  Card.findByIdAndUpdate(cardId,
+    { $pull: { likes: userId } },
+    { new: true },
+  )
+    .then(card => {res.status(200).send(card)})
+    .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err}` }));
+}
+
 module.exports = {
   getCards,
   createCard,
-  deleteCard
+  deleteCard,
+  likeCard,
+  dislikeCard
 };
