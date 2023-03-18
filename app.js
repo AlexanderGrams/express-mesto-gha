@@ -16,6 +16,13 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+  req.user = {
+    _id: '641596a2b929a25343e89926'
+  };
+
+  next();
+});
 app.use(routes);
 
 app.listen(PORT, () => {
