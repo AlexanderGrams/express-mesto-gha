@@ -1,77 +1,124 @@
 const User = require('../models/userSchema');
+const {
+  OK,
+  CREATED,
+  INVALID_DATA,
+  NOT_FOUND,
+  INTERNAL,
+} = require('../utils/resStatus');
 
+// Получить всех пользователей
 const getUsers = (req, res) => {
+  // Найти всех пользователей в базе данных
   User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => res.status(500).send({ message: `Произошла ошибка ${err.message}` }));
+    .then((users) => res.status(OK.CODE).send({
+      users,
+      message: OK.MESSAGE,
+    }))
+    .catch(() => res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE }));
 };
 
+// Получить пользователя
 const getUser = (req, res) => {
+  // Получить id пользователя из URL
   const { userId } = req.params;
 
+  // Найти пользователя по id в базе данных
   User.findById(userId)
     .then((user) => {
       if (!(user)) {
-        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+        return res.status(NOT_FOUND.CODE)
+          .send({ message: NOT_FOUND.USER_MESSAGE });
       }
-      return res.status(200).send(user);
+      return res.status(OK.CODE).send({
+        user,
+        message: OK.MESSAGE,
+      });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные id пользователя' });
+        return res.status(INVALID_DATA.CODE)
+          .send({ message: INVALID_DATA.MESSAGE });
       }
-      return res.status(500).send({ message: `Произошла ошибка ${err.message}` });
+      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
     });
 };
 
+// Создать нового пользователя
 const createUser = (req, res) => {
+  // Получить необходимые данные из тела запроса
   const { name, about, avatar } = req.body;
 
+  // Создать нового пользователя в базе данных
   User.create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.status(CREATED.CODE).send({
+      user,
+      message: CREATED.MESSAGE,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя.' });
+        return res.status(INVALID_DATA.CODE)
+          .send({ message: INVALID_DATA.MESSAGE });
       }
-      return res.status(500).send({ message: `Произошла ошибка ${err.message}` });
+      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
     });
 };
 
+// Внести изменения в информацию профиля
 const patchProfile = (req, res) => {
+  // Получить необходимые данные из тела запроса
   const { name, about } = req.body;
+
+  // Получить id пользователя из временного решения авторизации
   const userId = req.user._id;
 
-  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true, upsert: true })
+  // Обновить данные пользователя по соответствующем id в базе данных
+  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+        return res.status(NOT_FOUND.CODE)
+          .send({ message: NOT_FOUND.USER_MESSAGE });
       }
-      return res.status(200).send({ data: user });
+      return res.status(OK.CODE).send({
+        user,
+        message: OK.MESSAGE,
+      });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+        return res.status(INVALID_DATA.CODE)
+          .send({ message: INVALID_DATA.MESSAGE });
       }
-      return res.status(500).send({ message: `Произошла ошибка ${err.message}` });
+      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
     });
 };
 
+// Изменить аватар
 const patchAvatar = (req, res) => {
+  // Получить необходимые данные из тела запроса
   const { avatar } = req.body;
+
+  // Получить id пользователя из временного решения авторизации
   const userId = req.user._id;
 
-  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true, upsert: true })
+  // Обновить данные пользователя по соответствующем id в базе данных
+  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+        return res.status(NOT_FOUND.CODE)
+          .send({ message: NOT_FOUND.USER_MESSAGE });
       }
-      return res.status(200).send({ data: user });
+      return res.status(OK.CODE).send({
+        user,
+        message: OK.MESSAGE,
+      });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+        return res.status(INVALID_DATA.CODE)
+          .send({ message: INVALID_DATA.MESSAGE });
       }
-      return res.status(500).send({ message: `Произошла ошибка ${err.message}` });
+      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
     });
 };
 

@@ -4,6 +4,7 @@ const routes = require('./routes');
 
 const { PORT = 3000 } = process.env;
 
+// Подключение к базе данных
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 })
@@ -12,8 +13,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 const app = express();
 
+// Парсинг приходящих данных со стороны клиента
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Временное решение авторизации
 app.use((req, res, next) => {
   req.user = {
     _id: '641596a2b929a25343e89926',
@@ -21,6 +25,8 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Роутинг
 app.use(routes);
 
 app.listen(PORT, () => {
