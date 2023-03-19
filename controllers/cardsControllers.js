@@ -12,10 +12,7 @@ const getCards = (req, res) => {
   // Найти все карточки в базе данных
   Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => res.status(OK.CODE).send({
-      cards,
-      message: OK.MESSAGE,
-    }))
+    .then((cards) => res.status(OK.CODE).send(cards))
     .catch(() => res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE }));
 };
 
@@ -29,10 +26,7 @@ const createCard = (req, res) => {
 
   // Создать новую крточку в базе данных
   Card.create({ name, link, owner })
-    .then((card) => res.status(CREATED.CODE).send({
-      card,
-      message: CREATED.MESSAGE,
-    }))
+    .then((card) => res.status(CREATED.CODE).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(INVALID_DATA.CODE)
@@ -54,10 +48,7 @@ const deleteCard = (req, res) => {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.CARD_MESSAGE });
       }
-      return res.status(OK.CODE).send({
-        card,
-        message: OK.DEL_CARD_MESSAGE,
-      });
+      return res.status(OK.CODE).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -87,10 +78,7 @@ const likeCard = (req, res) => {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.CARD_MESSAGE });
       }
-      return res.status(OK.CODE).send({
-        card,
-        message: OK.LIKE_CARD_MESSAGE,
-      });
+      return res.status(OK.CODE).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -120,10 +108,7 @@ const dislikeCard = (req, res) => {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.CARD_MESSAGE });
       }
-      return res.status(OK.CODE).send({
-        card,
-        meassage: OK.DISLIKE_CARD_MESSAGE,
-      });
+      return res.status(OK.CODE).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {

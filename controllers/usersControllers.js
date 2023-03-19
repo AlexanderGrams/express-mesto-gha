@@ -11,10 +11,7 @@ const {
 const getUsers = (req, res) => {
   // Найти всех пользователей в базе данных
   User.find({})
-    .then((users) => res.status(OK.CODE).send({
-      users,
-      message: OK.MESSAGE,
-    }))
+    .then((users) => res.status(OK.CODE).send(users))
     .catch(() => res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE }));
 };
 
@@ -30,10 +27,7 @@ const getUser = (req, res) => {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.USER_MESSAGE });
       }
-      return res.status(OK.CODE).send({
-        user,
-        message: OK.MESSAGE,
-      });
+      return res.status(OK.CODE).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -51,10 +45,7 @@ const createUser = (req, res) => {
 
   // Создать нового пользователя в базе данных
   User.create({ name, about, avatar })
-    .then((user) => res.status(CREATED.CODE).send({
-      user,
-      message: CREATED.MESSAGE,
-    }))
+    .then((user) => res.status(CREATED.CODE).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(INVALID_DATA.CODE)
@@ -79,10 +70,7 @@ const patchProfile = (req, res) => {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.USER_MESSAGE });
       }
-      return res.status(OK.CODE).send({
-        user,
-        message: OK.MESSAGE,
-      });
+      return res.status(OK.CODE).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -108,10 +96,7 @@ const patchAvatar = (req, res) => {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.USER_MESSAGE });
       }
-      return res.status(OK.CODE).send({
-        user,
-        message: OK.MESSAGE,
-      });
+      return res.status(OK.CODE).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
