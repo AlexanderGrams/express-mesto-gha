@@ -1,17 +1,20 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
+const helmet = require('helmet');
+
 const routes = require('./routes');
-
-const { PORT = 3000 } = process.env;
-
-// Подключение к базе данных
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true,
-})
-  .then(() => console.log('соединение установленно!'))
-  .catch(() => console.log('нет соединение!'));
+const { PORT, DB_ADDRESS } = require('./config');
 
 const app = express();
+
+// Подключение к базе данных
+mongoose.connect(DB_ADDRESS, {
+  useNewUrlParser: true,
+});
+
+app.use(helmet());
+app.use(cors({ origin: 'http://localhost:3000' }));
 
 // Парсинг приходящих данных со стороны клиента
 app.use(express.urlencoded({ extended: true }));

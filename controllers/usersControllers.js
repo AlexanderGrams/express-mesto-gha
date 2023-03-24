@@ -41,10 +41,14 @@ const getUser = (req, res) => {
 // Создать нового пользователя
 const createUser = (req, res) => {
   // Получить необходимые данные из тела запроса
-  const { name, about, avatar } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
   // Создать нового пользователя в базе данных
-  User.create({ name, about, avatar })
+  User.create({
+    name, about, avatar, email, password,
+  })
     .then((user) => res.status(CREATED.CODE).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
