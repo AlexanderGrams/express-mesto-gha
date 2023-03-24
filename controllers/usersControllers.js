@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 const User = require('../models/userSchema');
 const {
   OK,
@@ -45,10 +47,10 @@ const createUser = (req, res) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  // Создать нового пользователя в базе данных
-  User.create({
-    name, about, avatar, email, password,
-  })
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.status(CREATED.CODE).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
