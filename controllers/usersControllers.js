@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jsonwebtoken = require('jsonwebtoken');
 
 const User = require('../models/userSchema');
 const {
@@ -7,7 +8,9 @@ const {
   INVALID_DATA,
   NOT_FOUND,
   INTERNAL,
+  UNAUTHORIZED,
 } = require('../utils/resStatus');
+const JWT_SECRET = require('../config');
 
 // Получить всех пользователей
 const getUsers = (req, res) => {
@@ -47,7 +50,9 @@ const createUser = (req, res) => {
     name, about, avatar, email, password,
   } = req.body;
 
+  // Хешировать пороль
   bcrypt.hash(password, 10)
+    // Создать пользователся
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
@@ -113,10 +118,44 @@ const patchAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  // Получить необходимые данные из тела запроса
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .orFail(() => res.status(UNAUTHORIZED.CODE).send({ message: UNAUTHORIZED.PASSWORD_MESSAGE }))
+    .then((user) => bcrypt.compare(password, user.password)
+      .then((matched) => {
+        if (matched) {
+          return user;
+        }
+        return res.status(UNAUTHORIZED.CODE).send({ message: UNAUTHORIZED.PASSWORD_MESSAGE });
+      }))
+    .then((user) => {
+      const jwt = jsonwebtoken.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+      res.status(OK.CODE)
+        .cookie('jwt', jwt, {
+          // token - наш JWT токен, который мы отправляем
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        })
+        .send({ _id: user._id, jwt });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(INVALID_DATA.CODE)
+          .send({ message: INVALID_DATA.MESSAGE });
+      }
+      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
+    });
+};
+
 module.exports = {
   getUsers,
   getUser,
   createUser,
   patchProfile,
   patchAvatar,
+  login,
 };
