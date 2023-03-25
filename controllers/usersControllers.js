@@ -10,7 +10,7 @@ const {
   INTERNAL,
   UNAUTHORIZED,
 } = require('../utils/resStatus');
-const JWT_SECRET = require('../config');
+const { JWT_SECRET } = require('../config');
 
 // Получить всех пользователей
 const getUsers = (req, res) => {
@@ -135,7 +135,6 @@ const login = (req, res) => {
       const jwt = jsonwebtoken.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
       res.status(OK.CODE)
         .cookie('jwt', jwt, {
-          // token - наш JWT токен, который мы отправляем
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
           sameSite: true,
@@ -154,8 +153,8 @@ const login = (req, res) => {
 module.exports = {
   getUsers,
   getUser,
+  login,
   createUser,
   patchProfile,
   patchAvatar,
-  login,
 };
