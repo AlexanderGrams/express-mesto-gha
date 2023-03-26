@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 
 const routes = require('./routes');
 const { PORT, DB_ADDRESS } = require('./config');
@@ -20,14 +21,8 @@ app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Временное решение авторизации
-app.use((req, res, next) => {
-  req.user = {
-    _id: '641596a2b929a25343e89926',
-  };
-
-  next();
-});
+// Парсинг кук
+app.use(cookieParser());
 
 // Роутинг
 app.use(routes);
