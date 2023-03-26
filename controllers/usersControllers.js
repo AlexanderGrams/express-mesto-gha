@@ -43,6 +43,21 @@ const getUser = (req, res) => {
     });
 };
 
+// Получить информацию об авторизированном пользователе
+const getCurrentUser = (req, res, next) => {
+  // console.log(req.user);
+  // res.send('test')
+  User.findById(req.user._id)
+    .then((user) => {
+      if (user) {
+        res.status(OK.CODE).send(user);
+      } else {
+        next({ statusCode: NOT_FOUND.CODE, message: NOT_FOUND.USER_MESSAGE });
+      }
+    })
+    .catch(next);
+};
+
 // Создать нового пользователя
 const createUser = (req, res) => {
   // Получить необходимые данные из тела запроса
@@ -118,6 +133,7 @@ const patchAvatar = (req, res) => {
     });
 };
 
+// Авторизация
 const login = (req, res) => {
   // Получить необходимые данные из тела запроса
   const { email, password } = req.body;
@@ -153,6 +169,7 @@ const login = (req, res) => {
 module.exports = {
   getUsers,
   getUser,
+  getCurrentUser,
   login,
   createUser,
   patchProfile,
