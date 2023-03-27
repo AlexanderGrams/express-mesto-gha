@@ -37,7 +37,7 @@ const createCard = (req, res) => {
 };
 
 // Удалить карточку
-const deleteCard = (req, res, next) => {
+const deleteCard = (req, res) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
