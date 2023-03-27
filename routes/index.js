@@ -3,8 +3,16 @@ const ResStatus = require('../utils/resStatus');
 
 const userRoutes = require('./users');
 const cardRoutes = require('./cards');
+const signinAndSignupRoutes = require('./signinAndSignup');
+const auth = require('../middlewares/auth');
 
-// Все доступные роуты страницы
+// Все доступные роуты страницы без авторизации
+router.use('/users', signinAndSignupRoutes);
+
+// Проверка авторизации
+router.use(auth);
+
+// Все доступные роуты страницы с авторизацией
 router.use('/users', userRoutes);
 router.use('/cards', cardRoutes);
 
