@@ -37,18 +37,27 @@ const createCard = (req, res) => {
 };
 
 // Удалить карточку
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
+  // Получить id пользователя из cocke
+  const userId = req.user._id;
+
   // Найти и удалить карточку по id в базе данных
-  Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
         return res.status(NOT_FOUND.CODE)
           .send({ message: NOT_FOUND.CARD_MESSAGE });
       }
-      return res.status(OK.CODE).send(card);
+      if (userId !== String(card.owner)) {
+        return res.status(403).send({ message: 'Нет прав для удаления этой карточки' });
+      }
+      return card.deleteOne();
+    })
+    .then((deletedСard) => {
+      res.status(OK.CODE).send({ deletedСard });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -64,7 +73,7 @@ const likeCard = (req, res) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
-  // Получить id пользователя из временного решения авторизации
+  // Получить id пользователя из cocke
   const userId = req.user._id;
 
   // Добавить в массив пользователей лайкнувших карточку унакального пользователя
@@ -94,7 +103,7 @@ const dislikeCard = (req, res) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
-  // Получить id пользователя из временного решения авторизации
+  // Получить id пользователя из cocke
   const userId = req.user._id;
 
   // Удалить пользователя из массива унакальных пользователей лайкнувших карточку

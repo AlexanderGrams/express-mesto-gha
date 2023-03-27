@@ -45,8 +45,6 @@ const getUser = (req, res) => {
 
 // Получить информацию об авторизированном пользователе
 const getCurrentUser = (req, res, next) => {
-  // console.log(req.user);
-  // res.send('test')
   User.findById(req.user._id)
     .then((user) => {
       if (user) {
