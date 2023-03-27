@@ -136,7 +136,7 @@ const login = (req, res) => {
   // Получить необходимые данные из тела запроса
   const { email, password } = req.body;
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .orFail(() => res.status(UNAUTHORIZED.CODE).send({ message: UNAUTHORIZED.PASSWORD_MESSAGE }))
     .then((user) => bcrypt.compare(password, user.password)
       .then((matched) => {
