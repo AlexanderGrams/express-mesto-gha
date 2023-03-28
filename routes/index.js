@@ -10,7 +10,7 @@ const auth = require('../middlewares/auth');
 const errorHandler = require('../middlewares/errorHandler');
 
 // Все доступные роуты страницы без авторизации
-router.use('/users', signinAndSignupRoutes);
+router.use('/', signinAndSignupRoutes);
 
 // Проверка авторизации
 router.use(auth);
