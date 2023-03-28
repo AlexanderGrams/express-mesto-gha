@@ -1,6 +1,7 @@
 const router = require('express').Router();
-// const ResStatus = require('../utils/resStatus');
-const InternalServerError = require('../errors/InternalServerError');
+const { errors } = require('celebrate');
+
+const NotFoundError = require('../errors/NotFoundError');
 
 const userRoutes = require('./users');
 const cardRoutes = require('./cards');
@@ -19,8 +20,9 @@ router.use('/users', userRoutes);
 router.use('/cards', cardRoutes);
 
 // обработка ошибки, если введен несуществующий URL
-router.use((req, res, next) => next(new InternalServerError('Такого URL не существует')));
+router.use((req, res, next) => next(new NotFoundError('Такого URL не существует')));
 
+router.use(errors());
 router.use(errorHandler);
 
 module.exports = router;
