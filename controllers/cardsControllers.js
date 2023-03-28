@@ -1,24 +1,19 @@
 const Card = require('../models/cardSchema');
-const {
-  OK,
-  CREATED,
-  INVALID_DATA,
-  NOT_FOUND,
-  INTERNAL,
-} = require('../utils/resStatus');
+const InaccurateDataError = require('../errors/InaccurateDataError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 //  Получить все карточки
-const getCards = (req, res) => {
-  // Найти все карточки в базе данных
+const getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => res.status(OK.CODE).send(cards))
-    .catch(() => res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE }));
+    .then((cards) => res.send(cards))
+    .catch(next);
 };
 
 // Создать карточку
-const createCard = (req, res) => {
-  // Получить id пользователя из URL
+const createCard = (req, res, next) => {
+  // Получить id пользователя из cocke
   const owner = req.user._id;
 
   // Получить необходимые данные из тела запроса
@@ -26,45 +21,51 @@ const createCard = (req, res) => {
 
   // Создать новую крточку в базе данных
   Card.create({ name, link, owner })
-    .then((card) => res.status(CREATED.CODE).send(card))
+    .then((card) => res.status(201).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(INVALID_DATA.CODE)
-          .send({ message: INVALID_DATA.MESSAGE });
+        next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
+      next();
     });
 };
 
 // Удалить карточку
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
+  // Получить id пользователя из cocke
+  const userId = req.user._id;
+
   // Найти и удалить карточку по id в базе данных
-  Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND.CODE)
-          .send({ message: NOT_FOUND.CARD_MESSAGE });
+        throw next(new NotFoundError('Карточка не найдена'));
       }
-      return res.status(OK.CODE).send(card);
+      if (userId !== String(card.owner)) {
+        throw next(new ForbiddenError('Нет прав для удаления этой карточки'));
+      }
+      return card.deleteOne();
+    })
+    .then((deletedСard) => {
+      res.send({ deletedСard });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(INVALID_DATA.CODE)
-          .send({ message: INVALID_DATA.MESSAGE });
+        next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
+      next();
     });
 };
 
 // Поставить лайк карточке
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
-  // Получить id пользователя из временного решения авторизации
+  // Получить id пользователя из cocke
   const userId = req.user._id;
 
   // Добавить в массив пользователей лайкнувших карточку унакального пользователя
@@ -75,26 +76,24 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND.CODE)
-          .send({ message: NOT_FOUND.CARD_MESSAGE });
+        throw next(new NotFoundError('Карточка не найдена'));
       }
-      return res.status(OK.CODE).send(card);
+      return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(INVALID_DATA.CODE)
-          .send({ message: INVALID_DATA.MESSAGE });
+        next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
+      next();
     });
 };
 
 // Убрать лайк с карточки
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   // Получить id карточки из URL
   const { cardId } = req.params;
 
-  // Получить id пользователя из временного решения авторизации
+  // Получить id пользователя из cocke
   const userId = req.user._id;
 
   // Удалить пользователя из массива унакальных пользователей лайкнувших карточку
@@ -105,17 +104,15 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND.CODE)
-          .send({ message: NOT_FOUND.CARD_MESSAGE });
+        throw next(new NotFoundError('Карточка не найдена'));
       }
-      return res.status(OK.CODE).send(card);
+      return res.send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(INVALID_DATA.CODE)
-          .send({ message: INVALID_DATA.MESSAGE });
+        next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      return res.status(INTERNAL.CODE).send({ message: INTERNAL.MESSAGE });
+      next();
     });
 };
 
