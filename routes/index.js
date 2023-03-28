@@ -1,10 +1,12 @@
 const router = require('express').Router();
-const ResStatus = require('../utils/resStatus');
+// const ResStatus = require('../utils/resStatus');
+const InternalServerError = require('../errors/InternalServerError');
 
 const userRoutes = require('./users');
 const cardRoutes = require('./cards');
 const signinAndSignupRoutes = require('./signinAndSignup');
 const auth = require('../middlewares/auth');
+const errorHandler = require('../middlewares/errorHandler');
 
 // Все доступные роуты страницы без авторизации
 router.use('/users', signinAndSignupRoutes);
@@ -17,8 +19,8 @@ router.use('/users', userRoutes);
 router.use('/cards', cardRoutes);
 
 // обработка ошибки, если введен несуществующий URL
-router.use((req, res) => {
-  res.status(ResStatus.NOT_FOUND.CODE).send({ message: ResStatus.NOT_FOUND.PAGE_MESSAGE });
-});
+router.use((req, res, next) => next(new InternalServerError('Такого URL не существует')));
+
+router.use(errorHandler);
 
 module.exports = router;
