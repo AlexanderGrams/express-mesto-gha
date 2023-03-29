@@ -91,7 +91,7 @@ function updateInfo(res, next, id, propertiesObj) {
       }
       return next(err);
     });
-};
+}
 
 // Внести изменения в информацию профиля
 const patchProfile = (req, res, next) => {
