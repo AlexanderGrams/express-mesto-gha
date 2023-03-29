@@ -15,13 +15,8 @@ const getUsers = (req, res, next) => {
     .catch(next);
 };
 
-// Получить пользователя
-const getUser = (req, res, next) => {
-  // Получить id пользователя из URL
-  const { userId } = req.params;
-
-  // Найти пользователя по id в базе данных
-  User.findById(userId)
+function searchingUser(res, next, id) {
+  return User.findById(id)
     .then((user) => {
       if (!(user)) {
         throw next(new NotFoundError('Пользователь не найден'));
@@ -30,22 +25,22 @@ const getUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new InaccurateDataError('Переданы некорректные данные'));
+        return next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      next();
+      return next(err);
     });
+}
+
+// Получить пользователя
+const getUser = (req, res, next) => {
+  const { userId } = req.params;
+  return searchingUser(res, next, userId);
 };
 
 // Получить информацию об авторизированном пользователе
 const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .then((user) => {
-      if (user) {
-        return res.send(user);
-      }
-      throw next(new NotFoundError('Пользователь не найден'));
-    })
-    .catch(next);
+  const { _id } = req.user;
+  return searchingUser(res, next, _id);
 };
 
 // Создать нового пользователя
@@ -63,7 +58,6 @@ const createUser = (req, res, next) => {
     }))
     .then((user) => {
       const { _id } = user;
-
       return res.status(201).send({
         email,
         name,
@@ -74,61 +68,45 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.code === 11000) {
-        next(new ConflictError('Пользователь с таким электронным адресом уже зарегистрирован'));
+        return next(new ConflictError('Пользователь с таким электронным адресом уже зарегистрирован'));
       }
       if (err.name === 'ValidationError') {
-        next(new InaccurateDataError('Переданы некорректные данные'));
+        return next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      next();
+      return next(err);
+    });
+};
+
+function updateInfo(res, next, id, propertiesObj) {
+  User.findByIdAndUpdate(id, propertiesObj, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        throw next(new NotFoundError('Пользователь не найден'));
+      }
+      return res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new InaccurateDataError('Переданы некорректные данные'));
+      }
+      return next(err);
     });
 };
 
 // Внести изменения в информацию профиля
 const patchProfile = (req, res, next) => {
-  // Получить необходимые данные из тела запроса
   const { name, about } = req.body;
-
-  // Получить id пользователя из временного решения авторизации
   const userId = req.user._id;
 
-  // Обновить данные пользователя по соответствующем id в базе данных
-  User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
-    .then((user) => {
-      if (!user) {
-        throw next(new NotFoundError('Пользователь не найден'));
-      }
-      return res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new InaccurateDataError('Переданы некорректные данные'));
-      }
-      next();
-    });
+  return updateInfo(res, next, userId, { name, about });
 };
 
 // Изменить аватар
 const patchAvatar = (req, res, next) => {
-  // Получить необходимые данные из тела запроса
   const { avatar } = req.body;
-
-  // Получить id пользователя из временного решения авторизации
   const userId = req.user._id;
 
-  // Обновить данные пользователя по соответствующем id в базе данных
-  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    .then((user) => {
-      if (!user) {
-        throw next(new NotFoundError('Пользователь не найден'));
-      }
-      return res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new InaccurateDataError('Переданы некорректные данные'));
-      }
-      next();
-    });
+  return updateInfo(res, next, userId, { avatar });
 };
 
 // Авторизация
@@ -152,14 +130,9 @@ const login = (req, res, next) => {
         httpOnly: true,
         sameSite: true,
       })
-        .send({ _id: user._id, jwt });
+        .send({ _id: user._id });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new InaccurateDataError('Переданы некорректные данные'));
-      }
-      next();
-    });
+    .catch(next);
 };
 
 module.exports = {

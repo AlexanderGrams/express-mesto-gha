@@ -1,6 +1,6 @@
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'На сервере произошла ошибка';
+  const message = statusCode === 500 ? 'На сервере произошла ошибка' : err.message;
 
   res.status(statusCode).send({ message });
 
