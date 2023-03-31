@@ -24,9 +24,9 @@ const createCard = (req, res, next) => {
     .then((card) => res.status(201).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new InaccurateDataError('Переданы некорректные данные'));
+        return next(new InaccurateDataError('Переданы некорректные данные'));
       }
-      next(err);
+      return (err);
     });
 };
 
@@ -60,18 +60,10 @@ const deleteCard = (req, res, next) => {
     });
 };
 
-// Поставить лайк карточке
-const likeCard = (req, res, next) => {
-  // Получить id карточки из URL
-  const { cardId } = req.params;
-
-  // Получить id пользователя из cocke
-  const userId = req.user._id;
-
-  // Добавить в массив пользователей лайкнувших карточку унакального пользователя
+function updateLikeCard(res, next, id, propertiesObj) {
   Card.findByIdAndUpdate(
-    cardId,
-    { $addToSet: { likes: userId } },
+    id,
+    propertiesObj,
     { new: true },
   )
     .then((card) => {
@@ -86,34 +78,24 @@ const likeCard = (req, res, next) => {
       }
       return next(err);
     });
+}
+
+// Поставить лайк карточке
+const likeCard = (req, res, next) => {
+  const { cardId } = req.params;
+  const userId = req.user._id;
+
+  // Добавить в массив пользователей лайкнувших карточку унакального пользователя
+  updateLikeCard(res, next, cardId, { $addToSet: { likes: userId } });
 };
 
 // Убрать лайк с карточки
 const dislikeCard = (req, res, next) => {
-  // Получить id карточки из URL
   const { cardId } = req.params;
-
-  // Получить id пользователя из cocke
   const userId = req.user._id;
 
   // Удалить пользователя из массива унакальных пользователей лайкнувших карточку
-  Card.findByIdAndUpdate(
-    cardId,
-    { $pull: { likes: userId } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        throw next(new NotFoundError('Карточка не найдена'));
-      }
-      return res.send(card);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new InaccurateDataError('Переданы некорректные данные'));
-      }
-      return next(err);
-    });
+  updateLikeCard(res, next, cardId, { $pull: { likes: userId } });
 };
 
 module.exports = {
